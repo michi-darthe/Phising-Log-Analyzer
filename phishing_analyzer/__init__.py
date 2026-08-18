@@ -1,0 +1,2 @@
+"""Phishing analyzer package."""
+
