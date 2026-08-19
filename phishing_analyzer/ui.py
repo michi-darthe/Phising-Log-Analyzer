@@ -96,7 +96,7 @@ def _render_process_row() -> None:
             <div class="process-step">
                 <div class="process-step__label">Step 03</div>
                 <div class="process-step__title">Export</div>
-                <div class="process-step__text">Share the JSON report with SOC, logging, or automation.</div>
+                <div class="process-step__text">Export the JSON report for review or automation.</div>
             </div>
         </div>
         """,
@@ -407,7 +407,7 @@ def run_app() -> None:
                 <div style="margin-top:0.5rem; display:grid; gap:0.45rem;">
                     <span class="pill pill-info">Isolate suspicious mail</span>
                     <span class="pill pill-warning">Do not open risky attachments</span>
-                    <span class="pill pill-success">Share the JSON report with SOC</span>
+                    <span class="pill pill-success">Export the JSON report</span>
                 </div>
             </div>
             """,

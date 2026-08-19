@@ -1,6 +1,6 @@
 # Phishing Log Analyzer
 
-Streamlit-Webanwendung fuer den internen Phishing-Log-Analyse- und Reporting-Workflow.
+Streamlit-Webanwendung zur Analyse und Bewertung verdächtiger E-Mails.
 Zusätzlich gibt es einen Desktop-Launcher, der dieselbe Web-App in einem nativen Fenster startet.
 
 ## Highlights
@@ -44,4 +44,4 @@ Der Desktop-Launcher startet dieselbe Web-App lokal und öffnet sie in einem nat
 
 ## Hinweis
 
-Die App fuehrt nur eine Sicherheitsbewertung durch und ersetzt keine manuelle Analyse durch das Security-Team.
+Die App fuehrt nur eine automatisierte Sicherheitsbewertung durch und ersetzt keine manuelle Analyse.

@@ -1,6 +1,6 @@
 APP_NAME = "Phishing Log Analyzer"
 APP_SUBTITLE = (
-    "Internal phishing intake and reporting dashboard for suspicious emails, "
+    "Phishing analysis and reporting dashboard for suspicious emails, "
     "with header, link, attachment, and VirusTotal checks."
 )
 
@@ -66,6 +66,5 @@ URL_SHORTENERS = {
 SAFE_ACTION_HINTS = [
     "Use a sandbox for suspicious links",
     "Do not open risky attachments",
-    "Escalate high-risk reports to SOC",
+    "Escalate high-risk reports for further review",
 ]
-
