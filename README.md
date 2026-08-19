@@ -1,6 +1,7 @@
 # Phishing Log Analyzer
 
 Streamlit-Webanwendung fuer den internen Phishing-Log-Analyse- und Reporting-Workflow.
+Zusätzlich gibt es einen Desktop-Launcher, der dieselbe Web-App in einem nativen Fenster startet.
 
 ## Highlights
 
@@ -14,6 +15,7 @@ Streamlit-Webanwendung fuer den internen Phishing-Log-Analyse- und Reporting-Wor
 ## Projektstruktur
 
 - `app.py` - Streamlit-Entrypoint
+- `desktop_app.py` - Desktop-Launcher fuer die lokale App
 - `phishing_analyzer/parsing.py` - E-Mail- und Bildanalyse
 - `phishing_analyzer/scoring.py` - Risk-Scoring und Signale
 - `phishing_analyzer/virustotal.py` - API-Aufrufe und Normalisierung
@@ -26,6 +28,14 @@ Streamlit-Webanwendung fuer den internen Phishing-Log-Analyse- und Reporting-Wor
 pip install -r requirements.txt
 streamlit run app.py
 ```
+
+## Desktop
+
+```bash
+python desktop_app.py
+```
+
+Der Desktop-Launcher startet dieselbe Web-App lokal und öffnet sie in einem nativen Qt-Fenster. Damit bleibt die Website-Version unverändert, du bekommst aber eine echte Desktop-App.
 
 ## Optional
 

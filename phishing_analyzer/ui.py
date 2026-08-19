@@ -2,8 +2,6 @@ import html as html_lib
 import json
 import os
 import ipaddress
-from base64 import b64encode
-from pathlib import Path
 from textwrap import dedent
 from typing import Any
 
@@ -16,86 +14,24 @@ from .theme import build_css, get_theme
 from .virustotal import query_virustotal_file, query_virustotal_ip, query_virustotal_url, vt_summary_from_attributes
 
 
-ASSET_CANDIDATES = [
-    "mm_group.jpg",
-    "mm_group.jpeg",
-    "mm_group.png",
-    "mm_group.webp",
-    "mm-group-logo.jpg",
-    "mm-group-logo.jpeg",
-    "mm-group-logo.png",
-    "mm-group-logo.webp",
-    "mm_logo.jpg",
-    "mm_logo.jpeg",
-    "logo.jpg",
-    "logo.jpeg",
-    "logo.png",
-    "brand.jpg",
-    "brand.jpeg",
-    "brand.png",
-]
-
-
 def _status_pill(label: str, kind: str) -> str:
     return f'<span class="pill pill-{kind}">{html_lib.escape(label)}</span>'
 
 
-def _mm_brand_mark() -> str:
+def _app_brand_mark() -> str:
     return """
-    <div class="brand-mark">
-        <div class="brand-mark__icon">
-            <span>MM</span>
+    <div class="app-mark">
+        <div class="app-mark__icon" aria-hidden="true">
+            <span class="app-mark__ring"></span>
+            <span class="app-mark__shield">
+                <span class="app-mark__spark"></span>
+                <span class="app-mark__monogram">PS</span>
+            </span>
         </div>
-        <div class="brand-mark__text">
-            <div class="brand-mark__name">MM Group</div>
-            <div class="brand-mark__sub">Mayr-Melnhof</div>
+        <div class="app-mark__text">
+            <div class="app-mark__name">Phishing Log Analyzer</div>
+            <div class="app-mark__sub">Clean triage for suspicious mail</div>
         </div>
-    </div>
-    """
-
-
-def _find_logo_path() -> Path | None:
-    project_root = Path(__file__).resolve().parents[1]
-    for candidate in ASSET_CANDIDATES:
-        candidate_path = project_root / candidate
-        if candidate_path.is_file():
-            return candidate_path
-    for candidate_path in sorted(project_root.glob("*")):
-        stem = candidate_path.stem.lower()
-        if candidate_path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".svg"} and (
-            "logo" in stem or "mm" in stem or "group" in stem
-        ):
-            return candidate_path
-    return None
-
-
-def _logo_markup() -> str:
-    logo_path = _find_logo_path()
-    if not logo_path:
-        return _mm_brand_mark()
-
-    if logo_path.suffix.lower() == ".svg":
-        try:
-            data = logo_path.read_bytes()
-        except Exception:
-            return _mm_brand_mark()
-        encoded = b64encode(data).decode("ascii")
-        return f"""
-        <div class="brand-logo">
-            <img class="brand-logo__img" src="data:image/svg+xml;base64,{encoded}" alt="MM Group logo" />
-        </div>
-        """
-
-    try:
-        data = logo_path.read_bytes()
-    except Exception:
-        return _mm_brand_mark()
-
-    encoded = b64encode(data).decode("ascii")
-    mime = "image/png" if logo_path.suffix.lower() == ".png" else "image/webp" if logo_path.suffix.lower() == ".webp" else "image/jpeg"
-    return f"""
-    <div class="brand-logo">
-        <img class="brand-logo__img" src="data:{mime};base64,{encoded}" alt="MM Group logo" />
     </div>
     """
 
@@ -110,28 +46,102 @@ def _metric_card(label: str, value: str, hint: str) -> str:
     """
 
 
+def _section_header(eyebrow: str, title: str, text: str | None = None) -> str:
+    text_html = f'<div class="section-head__text">{html_lib.escape(text)}</div>' if text else ""
+    return f"""
+    <div class="section-head">
+        <div class="section-head__eyebrow">{html_lib.escape(eyebrow)}</div>
+        <div class="section-head__title">{html_lib.escape(title)}</div>
+        {text_html}
+    </div>
+    """
+
+
+def _render_topstrip() -> None:
+    st.markdown(
+        """
+        <div class="topstrip">
+            <div>
+                <div class="topstrip__title">Fast, clean phishing triage</div>
+                <div class="topstrip__text">
+                    One upload, one score, one export. The interface is tuned for quick review
+                    and low visual noise.
+                </div>
+            </div>
+            <div class="topstrip__chips">
+                <span class="pill pill-info">Header parsing</span>
+                <span class="pill pill-info">Attachment scan</span>
+                <span class="pill pill-info">URL checks</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_process_row() -> None:
+    st.markdown(
+        """
+        <div class="process-row">
+            <div class="process-step">
+                <div class="process-step__label">Step 01</div>
+                <div class="process-step__title">Upload</div>
+                <div class="process-step__text">Drop an .eml file or screenshot to extract the message.</div>
+            </div>
+            <div class="process-step">
+                <div class="process-step__label">Step 02</div>
+                <div class="process-step__title">Review</div>
+                <div class="process-step__text">Inspect the score, signals, links, and attachment risk.</div>
+            </div>
+            <div class="process-step">
+                <div class="process-step__label">Step 03</div>
+                <div class="process-step__title">Export</div>
+                <div class="process-step__text">Share the JSON report with SOC, logging, or automation.</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_empty_state() -> None:
+    st.markdown(
+        """
+        <div class="empty-state">
+            <div class="empty-state__title">Drop a file to start the analysis</div>
+            <p class="empty-state__text">
+                Upload a suspicious .eml file or a screenshot. The dashboard extracts headers,
+                links, attachments, and reputation signals, then builds a clean report.
+            </p>
+            <div class="empty-state__steps">
+                <span class="pill pill-info">1. Upload message</span>
+                <span class="pill pill-info">2. Review signals</span>
+                <span class="pill pill-info">3. Export JSON</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def _render_header(tokens) -> None:
-    logo_path = _find_logo_path()
-    left, right = st.columns([0.22, 0.78], gap="large")
+    left, right = st.columns([0.24, 0.76], gap="large")
 
     with left:
-        if logo_path:
-            st.image(str(logo_path), use_container_width=True)
-        else:
-            st.markdown(_logo_markup(), unsafe_allow_html=True)
+        st.markdown(_app_brand_mark(), unsafe_allow_html=True)
 
     with right:
         st.markdown(
             dedent(
                 f"""
                 <div class="hero">
-                    <span class="eyebrow">Internal Security Intake</span>
+                    <span class="eyebrow">Security intake</span>
                     <h1>{html_lib.escape(APP_NAME)}</h1>
                     <p>{html_lib.escape(APP_SUBTITLE)}</p>
                     <div class="hero-meta">
-                        {_status_pill("Header analysis", "info")}
-                        {_status_pill("Attachment scan", "info")}
-                        {_status_pill("URL reputation", "info")}
+                        {_status_pill("Clean review flow", "info")}
+                        {_status_pill("Low-noise interface", "info")}
+                        {_status_pill("Fast export", "info")}
                         {_status_pill("JSON export", "info")}
                     </div>
                 </div>
@@ -139,28 +149,6 @@ def _render_header(tokens) -> None:
             ),
             unsafe_allow_html=True,
         )
-
-
-def _render_feature_cards() -> None:
-    st.markdown(
-        """
-        <div class="feature-grid">
-            <div class="feature-card">
-                <h3>Clean intake flow</h3>
-                <p>Employees can upload .eml files or screenshots without losing header and body context.</p>
-            </div>
-            <div class="feature-card">
-                <h3>Smart risk model</h3>
-                <p>SPF, DKIM, DMARC, Reply-To mismatch, suspicious keywords, URL tricks, and risky attachments are scored together.</p>
-            </div>
-            <div class="feature-card">
-                <h3>Operational export</h3>
-                <p>Every report can be downloaded as JSON for handoff, logging, or later automation.</p>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
 
 def _render_top_metrics(score: int, report: dict[str, Any], analysis: dict[str, Any]) -> None:
@@ -187,11 +175,38 @@ def _normalize_priority(score: int) -> tuple[str, str]:
 def _render_banner(score: int) -> None:
     kind, label = _normalize_priority(score)
     if kind == "critical":
-        st.error(f"{label}: score {score}/100. The message shows clear phishing indicators.")
+        st.error(f"{label}: score {score}/100. The message shows strong phishing indicators.")
     elif kind == "medium":
         st.warning(f"{label}: score {score}/100. Several indicators need a manual review.")
     else:
         st.success(f"{label}: score {score}/100. Only a few weak signals were found.")
+
+
+def _decision_text(score: int) -> tuple[str, str]:
+    if score >= 70:
+        return "High risk", "Quarantine the email and investigate immediately."
+    if score >= 35:
+        return "Review needed", "Check the sender, URLs, and attachments before acting."
+    return "Low risk", "No strong indicators, but keep the report for records."
+
+
+def _render_decision_card(score: int, report: dict[str, Any], analysis: dict[str, Any]) -> None:
+    decision, text = _decision_text(score)
+    st.markdown(
+        f"""
+        <div class="decision-card">
+            <div class="decision-card__label">Decision</div>
+            <div class="decision-card__value">{html_lib.escape(decision)} · {score}/100</div>
+            <div class="decision-card__text">{html_lib.escape(text)}</div>
+            <div class="hero-meta" style="margin-top:0.35rem;">
+                {_status_pill(f"{len(analysis.get('signals', []))} signals", "info")}
+                {_status_pill(f"{len(report.get('urls', []))} links", "info")}
+                {_status_pill(f"{len(report.get('attachments', []))} attachments", "info")}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _render_signals(signals: list[dict[str, Any]]) -> None:
@@ -364,7 +379,7 @@ def _collect_virustotal(api_key: str, report: dict[str, Any]) -> dict[str, Any]:
 
 
 def run_app() -> None:
-    st.set_page_config(page_title=APP_NAME, page_icon="🛡️", layout="wide", initial_sidebar_state="expanded")
+    st.set_page_config(page_title=APP_NAME, page_icon="🕵️", layout="wide", initial_sidebar_state="expanded")
 
     theme_mode = st.sidebar.selectbox("Theme", ["Dark", "Light"], index=0, help="Switch the dashboard appearance.")
     tokens = get_theme(theme_mode)
@@ -375,7 +390,7 @@ def run_app() -> None:
             f"""
             <div class="sidebar-card">
                 <div class="section-title">Configuration</div>
-                <p style="margin:0.4rem 0 0 0; color:{tokens.muted}; line-height:1.5;">
+                <p style="margin:0.35rem 0 0 0; color:{tokens.muted}; line-height:1.5;">
                     Tune the scan behaviour and optionally connect VirusTotal for external reputation checks.
                 </p>
             </div>
@@ -406,17 +421,19 @@ def run_app() -> None:
         )
 
     _render_header(tokens)
-    _render_feature_cards()
+    _render_topstrip()
+    _render_process_row()
 
+    st.markdown(_section_header("Input", "Analyze a suspicious email", "Upload one message or screenshot to generate a clean triage report."), unsafe_allow_html=True)
     uploaded_file = st.file_uploader(
-        "Upload suspicious email or screenshot",
+        "Upload file",
         type=["eml", "png", "jpg", "jpeg"],
         accept_multiple_files=False,
         help="Upload a forwarded .eml file or a screenshot of the suspicious message.",
     )
 
     if not uploaded_file:
-        st.info("Upload a file to start the analysis.")
+        _render_empty_state()
         return
 
     file_name = (uploaded_file.name or "").lower()
@@ -433,22 +450,23 @@ def run_app() -> None:
 
     st.divider()
     _render_banner(score)
+    _render_decision_card(score, report, analysis)
     _render_top_metrics(score, report, analysis)
 
     st.progress(min(score, 100))
 
-    report_left, report_right = st.columns([1.35, 0.65], gap="large")
+    report_left, report_right = st.columns([1.34, 0.66], gap="large")
     with report_left:
-        st.markdown('<div class="section-title">Findings</div>', unsafe_allow_html=True)
+        st.markdown(_section_header("Results", "Findings", "The strongest signals appear here first so the review stays fast and readable."), unsafe_allow_html=True)
         _render_finding_summary(analysis.get("signals", []))
         _render_signals(analysis.get("signals", []))
-        st.markdown('<div class="section-title" style="margin-top:1rem;">Findings table</div>', unsafe_allow_html=True)
+        st.markdown(_section_header("Details", "Findings table"), unsafe_allow_html=True)
         _render_findings_table(analysis.get("signals", []))
-        st.markdown('<div class="section-title" style="margin-top:1rem;">Message details</div>', unsafe_allow_html=True)
+        st.markdown(_section_header("Context", "Message details"), unsafe_allow_html=True)
         _render_detail_table(report)
 
     with report_right:
-        st.markdown('<div class="section-title">Export</div>', unsafe_allow_html=True)
+        st.markdown(_section_header("Export", "Share the report", "Use the JSON export for handoff, tickets, or automation."), unsafe_allow_html=True)
         st.download_button(
             "Download JSON report",
             data=_serialize_payload(report, analysis, vt_results),
@@ -460,13 +478,13 @@ def run_app() -> None:
             """
             <div class="callout" style="margin-top:0.9rem;">
                 <h3>Recommended next step</h3>
-                <p>Quarantine the email, warn the user, and validate any link or attachment in a controlled environment.</p>
+                <p>Quarantine the message, warn the user, and validate links or attachments in a controlled environment.</p>
             </div>
             """,
             unsafe_allow_html=True,
         )
         if vt_results:
-            st.markdown('<div class="section-title" style="margin-top:0.9rem;">VirusTotal</div>', unsafe_allow_html=True)
+            st.markdown(_section_header("Reputation", "VirusTotal"), unsafe_allow_html=True)
             with st.expander("URLs"):
                 st.json(vt_results.get("urls", []))
             with st.expander("IPs"):
@@ -474,6 +492,7 @@ def run_app() -> None:
             with st.expander("Files"):
                 st.json(vt_results.get("files", []))
 
+    st.markdown(_section_header("Evidence", "Message artifacts", "Review links, attachments, headers, and raw text in one place."), unsafe_allow_html=True)
     tabs = st.tabs(["Links", "Attachments", "Headers", "Raw text"])
     with tabs[0]:
         _render_url_table(report)

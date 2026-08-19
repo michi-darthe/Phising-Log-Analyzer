@@ -1,4 +1,5 @@
 streamlit
+PyQt6-WebEngine
 requests
 beautifulsoup4
 pillow
