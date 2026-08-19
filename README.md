@@ -45,3 +45,4 @@ Der Desktop-Launcher startet dieselbe Web-App lokal und öffnet sie in einem nat
 ## Hinweis
 
 Die App fuehrt nur eine automatisierte Sicherheitsbewertung durch und ersetzt keine manuelle Analyse.
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/05d01e36-c8a0-45b1-a1f1-19123b98a894" />
